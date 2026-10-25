@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#23206b">
+<title>EasyBuy | بحث معاملات Ci-Net</title>
+<style>
+:root {
+  --navy:#23206b;
+  --navy2:#29257a;
+  --red:#c51f2b;
+  --bg:#eef1f6;
+  --text:#22285b;
+  --muted:#7d858b;
+  --line:#e1e3e7;
+  --white:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text)}
+.header{background:linear-gradient(135deg,var(--navy),#1f1c61);color:#fff;padding:25px 20px 24px;box-shadow:0 5px 18px rgba(35,32,107,.18)}
+.header-inner{max-width:760px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-size:30px;font-weight:900;letter-spacing:-1px}
+.brand span{color:var(--red)}
+.tag{font-size:12px;letter-spacing:3px;color:#d8d8ea;margin-top:3px}
+.title{font-size:20px;font-weight:800;margin-top:16px}
+.wrap{max-width:760px;margin:0 auto;padding:20px 14px 40px}
+.card{background:#fff;border:1px solid #e5e6e9;border-radius:24px;box-shadow:0 8px 28px rgba(35,32,107,.09);overflow:hidden}
+.search-card{padding:22px 18px}
+.label{font-size:18px;font-weight:800;margin-bottom:10px}
+.searchbox{display:flex;gap:9px}
+input{flex:1;height:55px;border:2px solid #e0e1e5;border-radius:15px;padding:0 16px;font-size:18px;direction:ltr;text-align:left;outline:none;color:#27304e;background:#fafbfc}
+input:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(35,32,107,.08)}
+button{height:55px;border:0;border-radius:15px;background:var(--navy);color:#fff;font-weight:800;font-size:16px;padding:0 22px;cursor:pointer;box-shadow:0 5px 12px rgba(35,32,107,.18)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.65;cursor:wait}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pill{background:#f0f1f8;border-radius:999px;padding:7px 11px;font-size:12px;color:#5e6473}
+.result-area{margin-top:18px}
+.status{background:#f6f7f9;border:1px solid #e8e9ec;border-radius:15px;padding:13px 14px;color:#69717a;font-size:14px}
+.result{margin-top:12px;border:1px solid var(--line);border-radius:18px;padding:17px;background:#fff}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.civil{font-size:20px;font-weight:900;direction:ltr;text-align:left;letter-spacing:.5px}
+.found{background:#eaf5ee;color:#18733c;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;white-space:nowrap}
+.reason{margin-top:14px;background:#f7f7fa;border-right:4px solid var(--red);padding:12px 13px;border-radius:10px;line-height:1.7;font-size:15px;color:#343949}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
+.meta-item{background:#fafbfc;border:1px solid #edf0f2;border-radius:11px;padding:9px 11px}
+.meta-label{font-size:11px;color:#9299a0;margin-bottom:3px}
+.meta-value{font-size:13px;color:#4c5560;font-weight:650}
+.footer{text-align:center;color:#949ba2;font-size:11px;padding:18px 4px 0;line-height:1.6}
+@media(max-width:520px){
+  .brand{font-size:26px}
+  .tag{font-size:10px;letter-spacing:2px}
+  .searchbox{flex-direction:column}
+  button{width:100%}
+  .meta{grid-template-columns:1fr}
+  .result-head{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <div>
+      <div class="brand">EASY<span>Buy</span></div>
+      <div class="tag">INSTALLMENTS SERVICES</div>
+      <div class="title">🔎 بحث المعاملات المرفوضة — Ci-Net</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="card">
+    <section class="search-card">
+      <div class="label">الرقم المدني</div>
+      <div class="searchbox">
+        <input id="civilId" inputmode="numeric" autocomplete="off" placeholder="أدخل الرقم المدني..." aria-label="الرقم المدني" />
+        <button id="searchButton" onclick="searchCivil()">بحث</button>
+      </div>
+      <div class="stats">
+        <div class="pill">إجمالي السجلات: <b id="count">—</b></div>
+        <div class="pill">بحث Ci-Net</div>
+      </div>
+      <div class="result-area">
+        <div id="status" class="status">أدخل الرقم المدني للبحث في الساينت.</div>
+        <div id="results"></div>
+      </div>
+    </section>
+  </div>
+  <div class="footer">EasyBuy • Ci-Net Declined Transactions<br>البحث متصل بقاعدة البيانات.</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/*
+  IMPORTANT:
+  Replace these two placeholders with your Supabase project's URL
+  and its public publishable key (or legacy anon key).
+  Never put a service_role or secret key in this file.
+*/
+const SUPABASE_URL = "https://nwtuicazinqptslxwpeh.supabase.co";
+const SUPABASE_PUBLIC_KEY = "sb_publishable_sLtjauEedfmQDa2j1v5LGQ_TjxOFA1J";
+
+const statusEl = document.getElementById("status");
+const resultsEl = document.getElementById("results");
+const countEl = document.getElementById("count");
+const searchButton = document.getElementById("searchButton");
+
+let supabaseClient = null;
+
+function norm(v) {
+  return String(v || "").replace(/\D/g, "");
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[c]);
+}
+
+function initializeSupabase() {
+  if (SUPABASE_URL.includes("PASTE_YOUR") ||
+      SUPABASE_PUBLIC_KEY.includes("PASTE_YOUR")) {
+    statusEl.textContent = "خاص إعداد رابط Supabase والمفتاح العمومي داخل ملف الموقع أولاً.";
+    searchButton.disabled = true;
+    return;
+  }
+  if (!window.supabase || !window.supabase.createClient) {
+    statusEl.textContent = "ما قدرناش نحملو مكتبة الاتصال. تحقق من اتصال الإنترنت.";
+    searchButton.disabled = true;
+    return;
+  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+  loadCount();
+}
+
+async function loadCount() {
+  // Count is intentionally not fetched from the public transactions table.
+  // Add a separate safe count function later if the total is required.
+  countEl.textContent = "—";
+}
+
+async function searchCivil() {
+  const q = norm(document.getElementById("civilId").value);
+  resultsEl.innerHTML = "";
+
+  if (!q) {
+    statusEl.textContent = "أدخل الرقم المدني للبحث.";
+    return;
+  }
+  if (!supabaseClient) {
+    statusEl.textContent = "الاتصال بقاعدة البيانات مازال ما تهيّأش.";
+    return;
+  }
+
+  statusEl.textContent = "جاري البحث...";
+  searchButton.disabled = true;
+
+  try {
+    const { data, error } = await supabaseClient.rpc("search_cinet", {
+      p_civil_id: q
+    });
+
+    if (error) throw error;
+    const matches = data || [];
+
+    if (!matches.length) {
+      statusEl.textContent = "❌ ما لقيتش هاد الرقم في السجلات.";
+      return;
+    }
+
+    statusEl.textContent = `✅ لقيت ${matches.length} سجل مرتبط بهذا الرقم المدني.`;
+
+    matches.forEach(r => {
+      const el = document.createElement("div");
+      el.className = "result";
+      el.innerHTML = `
+        <div class="result-head">
+          <div class="civil">${esc(r.civil_id)}</div>
+          <div class="found">موجود في الساينت</div>
+        </div>
+        <div class="reason">${esc(r.reason || "سبب الرفض غير مذكور في الرسالة")}</div>
+        <div class="meta">
+          <div class="meta-item">
+            <div class="meta-label">التاريخ</div>
+            <div class="meta-value">${esc(r.transaction_date)} • ${esc(r.transaction_time)}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">الموظف</div>
+            <div class="meta-value">${esc(r.sender)}</div>
+          </div>
+        </div>`;
+      resultsEl.appendChild(el);
+    });
+  } catch (err) {
+    console.error("Ci-Net search error:", err);
+    statusEl.textContent = "وقع خطأ فالاتصال بقاعدة البيانات. تحقق من إعدادات Supabase ودالة البحث.";
+  } finally {
+    searchButton.disabled = false;
+  }
+}
+
+document.getElementById("civilId").addEventListener("keydown", e => {
+  if (e.key === "Enter") searchCivil();
+});
+
+initializeSupabase();
+</script>
+</body>
+</html>
